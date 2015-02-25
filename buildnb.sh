@@ -14,7 +14,6 @@ JUSTCHECKOUT=false
 BUILDRUMP=true
 TESTS=false
 BUILDZFS=false
-BUILDFIBER=false
 RUMPSRC=rumpsrc
 
 # figure out where gmake lies
@@ -63,12 +62,6 @@ for arg in "$@"; do
 	"zfs")
 		BUILDZFS=true
 		;;
-	"fiber")
-		BUILDFIBER=true
-		;;
-	"pthread")
-		BUILDFIBER=false
-		;;
 	*)
 		RUMPLOC=${arg}
 		BUILDRUMP=false
@@ -103,14 +96,11 @@ ${BUILDZFS} && \
 LIBS="$(stdlibs ${RUMPSRC}) ${ZFSLIBS}"
 
 appendconfig BUILDZFS
-appendconfig BUILDFIBER
 appendconfig RUMPSRC
-
-${BUILDFIBER} && FIBERFLAGS="-V RUMPUSER_THREADS=fiber -V RUMP_CURLWP=hypercall"
 
 # Build rump kernel if requested
 ${BUILDRUMP} && ./buildrump.sh/buildrump.sh ${BUILD_QUIET} \
-    ${EXTRAFLAGS} ${FLAGS} ${FIBERFLAGS} \
+    ${EXTRAFLAGS} ${FLAGS} \
     -s ${RUMPSRC} -T rumptools -o rumpdynobj -d rumpdyn -V MKSTATICLIB=no \
     $(${BUILDZFS} && echo -V MKZFS=yes) tools
 
@@ -119,7 +109,7 @@ RUMPMAKE=$(pwd)/rumptools/rumpmake
 appendconfig RUMPMAKE
 
 ${BUILDRUMP} && ./buildrump.sh/buildrump.sh ${BUILD_QUIET} \
-    ${EXTRAFLAGS} ${FLAGS} ${FIBERFLAGS} \
+    ${EXTRAFLAGS} ${FLAGS} \
     -s ${RUMPSRC} -T rumptools -o rumpdynobj -d rumpdyn -V MKSTATICLIB=no \
     $(${BUILDZFS} && echo -V MKZFS=yes) build install
 
@@ -168,11 +158,7 @@ ${MAKE}
 if ${TESTS}; then
 	[ -n "${RUMPLOC}" ] || die need rump kernel for tests
 	export PATH=${RUMPLOC}/bin:${PATH}
-	if ${BUILDFIBER}; then
-		tests/test.sh fiber
-	else
-		tests/test.sh pthread
-	fi
+	tests/test.sh
 fi
 
 echo

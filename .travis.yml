@@ -4,12 +4,10 @@ before_install:
  - git submodule update --init --recursive
 
 env:
- - WITHZFS=false THREADING=fiber
- - WITHZFS=false THREADING=pthread
- - WITHZFS=true  THREADING=fiber
- - WITHZFS=true  THREADING=pthread
+ - WITHZFS=false
+ - WITHZFS=true
 
-script: ./buildnb.sh -qq $(${WITHZFS} && echo zfs) ${THREADING} buildrump tests
+script: ./buildnb.sh -qq $(${WITHZFS} && echo zfs) buildrump tests
 
 notifications:
   irc:
